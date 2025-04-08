@@ -43,7 +43,6 @@ What is Kickstart?
 
 Kickstart Guide:
 
-  TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
 
     If you don't know what this means, type the following:
       - <escape key>
@@ -91,7 +90,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -99,10 +98,10 @@ vim.g.have_nerd_font = false
 --  For more options, you can see `:help option-list`
 
 -- Make line numbers default
-vim.opt.number = true
+-- vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -117,6 +116,25 @@ vim.opt.showmode = false
 vim.schedule(function()
   vim.opt.clipboard = 'unnamedplus'
 end)
+
+if vim.fn.has 'wsl' == 1 then
+  if vim.fn.executable 'wl-copy' == 0 then
+    print "wl-clipboard not found, clipboard integration won't work"
+  else
+    vim.g.clipboard = {
+      name = 'WslClipboard',
+      copy = {
+        ['+'] = 'clip.exe',
+        ['*'] = 'clip.exe',
+      },
+      paste = {
+        ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+        ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+      },
+      cache_enabled = true,
+    }
+  end
+end
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -672,7 +690,7 @@ require('lazy').setup({
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
-        -- rust_analyzer = {},
+        rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -898,21 +916,93 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
-        },
-      }
+    -- 'folke/tokyonight.nvim',
+    -- priority = 1000, -- Make sure to load this before all the other start plugins.
+    -- config = function()
+    --   ---@diagnostic disable-next-line: missing-fields
+    --   require('tokyonight').setup {
+    --     styles = {
+    --       comments = { italic = false }, -- Disable italics in comments
+    --     },
+    --   }
 
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
-    end,
+    --   -- Load the colorscheme here.
+    --   -- Like many other themes, this one has different styles, and you could load
+    --   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+    --   vim.cmd.colorscheme 'tokyonight-night'
+    -- end,
+
+    -- 'nyoom-engineering/oxocarbon.nvim',
+    -- priority = 1000, -- Make sure to load this before all the other start plugins.
+    -- config = function()
+    --   ---@diagnostic disable-next-line: missing-fields
+    --   require('oxocarbon').setup {
+    --     styles = {
+    --       comments = { italic = false }, -- Disable italics in comments
+    --     },
+    --   }
+
+    --   -- Load the colorscheme here.
+    --   -- Like many other themes, this one has different styles, and you could load
+    --   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+    --   vim.opt.background = 'dark' -- set this to dark or light
+    --   vim.cmd.colorscheme 'oxocarbon'
+    -- end,
+    'catppuccin/nvim',
+    lazy = true,
+    name = 'catppuccin',
+    opts = {
+      transparent_background = true,
+      integrations = {
+        aerial = true,
+        alpha = true,
+        cmp = true,
+        dashboard = true,
+        flash = true,
+        fzf = true,
+        grug_far = true,
+        gitsigns = true,
+        headlines = true,
+        illuminate = true,
+        indent_blankline = { enabled = true },
+        leap = true,
+        lsp_trouble = true,
+        mason = true,
+        markdown = true,
+        mini = true,
+        native_lsp = {
+          enabled = true,
+          underlines = {
+            errors = { 'undercurl' },
+            hints = { 'undercurl' },
+            warnings = { 'undercurl' },
+            information = { 'undercurl' },
+          },
+        },
+        navic = { enabled = true, custom_bg = 'lualine' },
+        neotest = true,
+        neotree = true,
+        noice = true,
+        notify = true,
+        semantic_tokens = true,
+        snacks = true,
+        telescope = true,
+        treesitter = true,
+        treesitter_context = true,
+        which_key = true,
+      },
+    },
+    specs = {
+      {
+        'akinsho/bufferline.nvim',
+        optional = true,
+        opts = function(_, opts)
+          if (vim.g.colors_name or ''):find 'catppuccin' then
+            opts.highlights = require('catppuccin.groups.integrations.bufferline').get()
+          end
+        end,
+      },
+    },
   },
 
   -- Highlight todo, notes, etc in comments
@@ -991,11 +1081,11 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
